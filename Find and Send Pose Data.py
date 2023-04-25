@@ -27,7 +27,7 @@ def init_cap():
     return cap
 
 def init_detector():
-    detector = HandDetector(detectionCon=0.7, maxHands=2)
+    detector = PoseDetector(detectionCon=0.7, maxHands=2)
     return detector
 
 def init_server():
