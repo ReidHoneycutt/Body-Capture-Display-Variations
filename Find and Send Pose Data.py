@@ -6,21 +6,23 @@ from cvzone.PoseModule import PoseDetector
 import cv2
 
 
-
 # initialize the video capture, detector, and socket objects
 def init_cap():
     cap = cv2.VideoCapture(0)
     return cap
 
+
 def init_detector():
     detector = PoseDetector()
     return detector
+
 
 def init_server():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(("127.0.0.1", 5000))  # the 5000 is the server ip that client is going to connect to.
     s.listen(5)  # the queue
     return s
+
 
 # functions to establish the client, and to send to the client
 def getClient(s):
@@ -33,6 +35,7 @@ def getClient(s):
 
 def send(clientsocket, packet):
     clientsocket.send(packet)
+
 
 # constructs the packet of hand data to send to the client
 # the delimiter "@" seperates the coordinates, and the delimiter ":" seperates the two components of each coordinate
@@ -59,6 +62,7 @@ def msg_construction(data, max_w, max_h):
     packet = data_len + num_hands + num_landmarks + data
     return packet
 
+
 # the function which runs continually throughout, searching for hands
 def search_for_hands(clientsocket, cap, detector):
     max_w = 1
@@ -77,7 +81,6 @@ def search_for_hands(clientsocket, cap, detector):
         msg = msg_construction(data, 1000, 1000)
         send(clientsocket, msg)
         cv2.waitKey(0)
-
 
 def main():
     s = init_server()
