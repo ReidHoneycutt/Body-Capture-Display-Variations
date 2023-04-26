@@ -5,21 +5,7 @@ import math
 from cvzone.PoseModule import PoseDetector
 import cv2
 
-cap = cv2.VideoCapture(0)
-detector = PoseDetector()
-while True:
-    success, img = cap.read()
-    img = detector.findPose(img)
-    lmList, bboxInfo = detector.findPosition(img, bboxWithHands=False)
-    if bboxInfo:
-        center = bboxInfo["center"]
-        cv2.circle(img, center, 5, (255, 0, 255), cv2.FILLED)
 
-    cv2.imshow("Image", img)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-cap.release()
-cv2.destroyAllWindows()
 
 # initialize the video capture, detector, and socket objects
 def init_cap():
@@ -27,7 +13,7 @@ def init_cap():
     return cap
 
 def init_detector():
-    detector = PoseDetector(detectionCon=0.7, maxHands=2)
+    detector = PoseDetector()
     return detector
 
 def init_server():
@@ -50,28 +36,21 @@ def send(clientsocket, packet):
 
 # constructs the packet of hand data to send to the client
 # the delimiter "@" seperates the coordinates, and the delimiter ":" seperates the two components of each coordinate
-def msg_construction(hands, max_w, max_h):
+def msg_construction(data, max_w, max_h):
     num_hands = 0
     num_landmarks = 0
     packet = ""
-    # if any hands are recognized, create a packet containing the byte representation of the total data length, number of hands, and number of landmarks
+    # if any hands  are recognized, create a packet containing the byte representation of the total data length, number of hands, and number of landmarks
     # the structure of a packet is "total data length + number of hands + number of landmarks + data of the hand coordinates"
-    if len(hands) > 0:
+    if len(data) > 0:
         num_hands = 1
-        num_landmarks += len(hands[0]["lmList"])
-        for i in range(len(hands[0]["lmList"])):
-            if i < len(hands[0]["lmList"]) - 1:
-                packet += str(round(hands[0]["lmList"][i][0] / max_w, 2)) + ":" + str(round(hands[0]["lmList"][i][1] / max_h, 2)) + "@"
+        num_landmarks += len(data)
+        for i in range(len(data)):
+            if i < len(data) - 1:
+                packet += str(round(data[i][1] / max_w, 2)) + ":" + str(round(data[i][2] / max_h, 2)) + "@"
             else:
-                packet += str(round(hands[0]["lmList"][i][0] / max_w, 2)) + ":" + str(round(hands[0]["lmList"][i][1] / max_h, 2))
-        if len(hands) > 1:
-            num_hands = 2
-            num_landmarks += len(hands[1]["lmList"])
-            for i in range(len(hands[0]["lmList"])):
-                if i < len(hands[0]["lmList"]) - 1:
-                    packet += str(round(hands[1]["lmList"][i][0] / max_w, 2)) + ":" + str(round(hands[1]["lmList"][i][1] / max_h, 2)) + "@"
-                else:
-                    packet += str(round(hands[1]["lmList"][i][0] / max_w, 2)) + ":" + str(round(hands[1]["lmList"][i][1] / max_h, 2))
+                packet += str(round(data[i][1] / max_w, 2)) + ":" + str(round(data[i][2] / max_h, 2))
+
 
     data_len = len(packet).to_bytes(4, "big", signed=False)
     num_hands = num_hands.to_bytes(1, "big", signed=False)
@@ -86,22 +65,21 @@ def search_for_hands(clientsocket, cap, detector):
     max_h = 1
     while True:
         success, img = cap.read()
-        hands, img = detector.findHands(img)
-        if len(hands) > 0:
-            if max(hands[0]["lmList"][:][0]) > max_w:
-                max_w = max(hands[0]["lmList"][:][0])
+        img = detector.findPose(img)
+        data, _ = detector.findPosition(img)
+        if len(data) > 0:
+            if max(data[:][1]) > max_w:
+                max_w = max(data[:][1])
 
-            if max(hands[0]["lmList"][:][1]) > max_h:
-                max_h = max(hands[0]["lmList"][:][1])
-
-            if len(hands) > 1:
+            if max(data[:][2]) > max_h:
+                max_h = max(data[:][2])
+            '''if len(hands) > 1:
                 if max(hands[1]["lmList"][:][0]) > max_w:
                     max_w = max(hands[0]["lmList"][:][0])
 
                 if max(hands[1]["lmList"][:][1]) > max_h:
-                    max_h = max(hands[0]["lmList"][:][1])
-
-        msg = msg_construction(hands, max_w, max_h)
+                    max_h = max(hands[0]["lmList"][:][1])'''
+        msg = msg_construction(data, 1000, 1000)
         send(clientsocket, msg)
         cv2.waitKey(0)
 
