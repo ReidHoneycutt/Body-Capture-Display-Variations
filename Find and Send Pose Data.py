@@ -73,12 +73,7 @@ def search_for_hands(clientsocket, cap, detector):
 
             if max(data[:][2]) > max_h:
                 max_h = max(data[:][2])
-            '''if len(hands) > 1:
-                if max(hands[1]["lmList"][:][0]) > max_w:
-                    max_w = max(hands[0]["lmList"][:][0])
 
-                if max(hands[1]["lmList"][:][1]) > max_h:
-                    max_h = max(hands[0]["lmList"][:][1])'''
         msg = msg_construction(data, 1000, 1000)
         send(clientsocket, msg)
         cv2.waitKey(0)
