@@ -4,3 +4,4 @@ A python computer vision program that tracks human pose data and sends it to a s
 
 https://user-images.githubusercontent.com/30945205/234771961-c3ef24a2-0635-444e-b6ba-cf91eabdd9fe.mp4
 
+https://www.instagram.com/reel/CrK5oNCt2bn/?utm_source=ig_web_button_share_sheet
